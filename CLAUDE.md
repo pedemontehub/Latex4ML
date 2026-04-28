@@ -1,6 +1,6 @@
 # Latex4ML
 
-A toolkit for creating professional LaTeX Beamer presentations about Machine Learning topics, powered by Claude Code subagents.
+A toolkit for generating professional PowerPoint (`.pptx`) presentations about Machine Learning topics, powered by Claude Code subagents and `python-pptx`.
 
 ## Project Structure
 
@@ -10,78 +10,91 @@ Latex4ML/
 │   └── agents/
 │       └── presentation-creator.md   # Subagent for creating presentations
 ├── templates/
-│   ├── beamer/
-│   │   ├── minimal.tex               # Minimal Beamer template
-│   │   ├── ml-standard.tex           # Standard ML presentation template
-│   │   └── ml-research.tex           # Research paper presentation template
-│   └── styles/
-│       └── ml-theme.sty              # Custom Beamer theme
+│   └── python/
+│       ├── helpers.py                # Reusable slide builders & color palette
+│       └── minimal.py                # Minimal presentation starter template
 ├── examples/
-│   └── neural-networks-intro.tex     # Example presentation
+│   └── neural_networks_intro.py      # Full example: Intro to Neural Networks (ES)
+├── presentations/                    # Output directory (gitignored *.pptx)
 ├── scripts/
-│   └── compile.sh                    # Compile .tex to PDF
+│   └── compile.sh                    # Run a .py script to produce its .pptx
+├── requirements.txt
 └── CLAUDE.md
 ```
 
-## Subagents
+## Subagent: presentation-creator
 
-### presentation-creator
-
-Specialized subagent for creating LaTeX Beamer presentations from scratch.
+Specialized Claude Code subagent that creates complete `.pptx` presentations from scratch.
 
 **Invoke with:** `/agent:presentation-creator`
 
-**Capabilities:**
-- Creates complete LaTeX Beamer `.tex` files from a topic description
-- Generates structured slides: title, agenda, content, conclusions, references
-- Supports ML-specific content: equations, algorithms, neural network diagrams (TikZ), plots
-- Applies appropriate Beamer themes and color schemes
-- Ensures all LaTeX syntax is valid and compilable
+**What it does:**
+1. Gathers your requirements (topic, audience, slide count, language)
+2. Proposes a numbered slide outline for your review
+3. Generates a Python script in `presentations/<name>.py` using `python-pptx`
+4. Executes the script to produce `presentations/<name>.pptx`
 
-**Usage example:**
+**Example:**
 ```
-/agent:presentation-creator Create a 20-slide presentation on Transformer architectures
-for a graduate audience. Include the attention mechanism, multi-head attention,
-positional encoding, and BERT/GPT comparisons.
+/agent:presentation-creator
+Crea una presentación de 20 slides sobre Transformers y mecanismo de atención
+para estudiantes de posgrado en español. Incluye diagramas de arquitectura,
+la ecuación de atención scaled dot-product, y comparación BERT vs GPT.
 ```
 
 ## Quick Start
 
-### 1. Generate a presentation
+### 1. Install dependencies
 
 ```bash
-# Invoke the subagent from Claude Code
+pip install -r requirements.txt
+```
+
+### 2. Generate a presentation via the subagent
+
+```
 /agent:presentation-creator <your topic and requirements>
 ```
 
-### 2. Compile to PDF
+### 3. Or run an existing script directly
 
 ```bash
-./scripts/compile.sh presentations/my-presentation.tex
+python examples/neural_networks_intro.py
+# → examples/neural_networks_intro.pptx
+
+./scripts/compile.sh presentations/my_talk.py
+# → presentations/my_talk.pptx
 ```
 
-### 3. Requirements
-
-- `texlive-full` or equivalent LaTeX distribution
-- Beamer package (included in texlive-full)
-- `pdflatex` or `lualatex`
-
-## LaTeX Compilation
+### 4. Use the minimal template as a starting point
 
 ```bash
-# Single pass
-pdflatex my-presentation.tex
-
-# Full pass (for references and bibliography)
-pdflatex my-presentation.tex
-bibtex my-presentation
-pdflatex my-presentation.tex
-pdflatex my-presentation.tex
+cp templates/python/minimal.py presentations/my_talk.py
+# edit presentations/my_talk.py
+python presentations/my_talk.py
 ```
 
-## Conventions
+## Color Palette
 
-- All presentations go in `presentations/` (created automatically)
-- Templates in `templates/beamer/` serve as starting points
-- Custom styles in `templates/styles/`
-- Output PDFs are gitignored (`*.pdf`, `*.aux`, `*.log`, etc.)
+| Name       | RGB           | Use                        |
+|------------|---------------|----------------------------|
+| ML_BLUE    | (0, 82, 147)  | Headers, primary elements  |
+| ML_ORANGE  | (220, 100, 0) | Highlights, alerts         |
+| ML_GREEN   | (0, 130, 70)  | Success, results           |
+| ML_GRAY    | (80, 80, 80)  | Secondary text             |
+| ML_DARK    | (20, 30, 50)  | Dark backgrounds           |
+| ML_LIGHT   | (235, 242, 251)| Slide backgrounds         |
+
+## Available Slide Types (helpers.py)
+
+| Function              | Description                                      |
+|-----------------------|--------------------------------------------------|
+| `slide_title()`       | Title slide with dark background                |
+| `slide_agenda()`      | Numbered agenda / table of contents             |
+| `slide_bullets()`     | Bulleted list slide with header bar             |
+| `slide_two_col()`     | Two-column comparison layout                    |
+| `slide_figure()`      | matplotlib figure + optional bullets            |
+| `slide_thank_you()`   | Closing slide with contact info                 |
+| `render_equation()`   | Render a LaTeX math string as a figure          |
+| `header_bar()`        | Blue header bar (used by all content slides)    |
+| `footer_bar()`        | Slide number footer                             |

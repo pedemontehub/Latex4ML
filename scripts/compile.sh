@@ -1,57 +1,25 @@
 #!/usr/bin/env bash
-# Compile a LaTeX Beamer .tex file to PDF.
-# Usage: ./scripts/compile.sh <path/to/file.tex> [--bibtex]
+# Run a presentation Python script to generate its .pptx file.
+# Usage: ./scripts/compile.sh <path/to/presentation.py>
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 <file.tex> [--bibtex]"
-  echo ""
-  echo "Options:"
-  echo "  --bibtex   Run bibtex between pdflatex passes (for bibliographies)"
+  echo "Usage: $0 <presentation.py>"
   echo ""
   echo "Examples:"
-  echo "  $0 presentations/my-talk.tex"
-  echo "  $0 presentations/my-paper.tex --bibtex"
+  echo "  $0 presentations/my_talk.py"
+  echo "  $0 examples/neural_networks_intro.py"
   exit 1
 }
 
 [[ $# -lt 1 ]] && usage
 
-TEX_FILE="$1"
-USE_BIBTEX=false
+PY_FILE="$1"
 
-for arg in "$@"; do
-  [[ "$arg" == "--bibtex" ]] && USE_BIBTEX=true
-done
-
-if [[ ! -f "$TEX_FILE" ]]; then
-  echo "Error: file not found: $TEX_FILE"
+if [[ ! -f "$PY_FILE" ]]; then
+  echo "Error: file not found: $PY_FILE"
   exit 1
 fi
 
-TEX_DIR="$(dirname "$TEX_FILE")"
-TEX_BASE="$(basename "$TEX_FILE" .tex)"
-
-echo "Compiling: $TEX_FILE"
-echo "Output dir: $TEX_DIR"
-
-cd "$TEX_DIR"
-
-pdflatex -interaction=nonstopmode -halt-on-error "${TEX_BASE}.tex"
-
-if $USE_BIBTEX; then
-  echo "Running bibtex..."
-  bibtex "${TEX_BASE}" || true
-  pdflatex -interaction=nonstopmode -halt-on-error "${TEX_BASE}.tex"
-fi
-
-pdflatex -interaction=nonstopmode -halt-on-error "${TEX_BASE}.tex"
-
-PDF="${TEX_BASE}.pdf"
-if [[ -f "$PDF" ]]; then
-  echo ""
-  echo "Success! Output: ${TEX_DIR}/${PDF}"
-else
-  echo "Error: PDF not generated. Check the log: ${TEX_BASE}.log"
-  exit 1
-fi
+echo "Running: python $PY_FILE"
+python "$PY_FILE"
