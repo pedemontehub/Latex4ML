@@ -1,0 +1,17 @@
+# Generated presentations
+presentations/*.pptx
+presentations/output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
